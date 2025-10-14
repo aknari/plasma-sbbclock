@@ -1,0 +1,34 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "tomas.bautista1@gmail.com",
+                "Name": "T. Bautista"
+            }
+        ],
+        "BugReportUrl": "",
+        "Category": "Date and Time",
+        "Description": "An analog/digital clock",
+        "EnabledByDefault": true,
+        "FormFactors": [
+            "tablet",
+            "handset",
+            "desktop"
+        ],
+        "Icon": "preferences-system-time",
+        "Id": "sbbclock",
+        "License": "BSD-2-Clause",
+        "Name": "SBB Clock",
+        "Website": "https://userbase.kde.org/Plasma/Clocks",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-MainConfiguration": "contents/config/config.qml",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.time",
+        "org.kde.plasma.date"
+    ]
+}
