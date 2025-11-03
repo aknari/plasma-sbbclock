@@ -4,13 +4,11 @@
     SPDX-License-Identifier: BSD-2-Clause
 */
 
-pragma ComponentBehavior: Bound
+import QtQuick 2.15
 
-import QtQuick
-
-import org.kde.plasma.plasmoid
-import org.kde.plasma.configuration
-import org.kde.plasma.workspace.calendar as PlasmaCalendar
+import org.kde.plasma.plasmoid 2.0
+import org.kde.plasma.configuration 2.0
+import org.kde.plasma.calendar 2.0 as PlasmaCalendar
 
 ConfigModel {
     id: configModel
@@ -29,25 +27,25 @@ ConfigModel {
 
     readonly property PlasmaCalendar.EventPluginsManager eventPluginsManager: PlasmaCalendar.EventPluginsManager {
         Component.onCompleted: {
-            populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins);
+            populateEnabledPluginsList(plasmoid.configuration.enabledCalendarPlugins);
         }
     }
 
     readonly property Instantiator __eventPlugins: Instantiator {
         model: configModel.eventPluginsManager.model
         delegate: ConfigCategory {
-            required property string display
-            required property string decoration
-            required property string configUi
-            required property string pluginId
+            property string pluginDisplay: model.display
+            property string pluginDecoration: model.decoration
+            property string pluginConfigUi: model.configUi
+            property string pluginId: model.pluginId
 
-            name: display
-            icon: decoration
-            source: configUi
-            visible: Plasmoid.configuration.enabledCalendarPlugins.indexOf(pluginId) > -1
+            name: pluginDisplay
+            icon: pluginDecoration
+            source: pluginConfigUi
+            visible: plasmoid.configuration.enabledCalendarPlugins.indexOf(pluginId) > -1
         }
 
-        onObjectAdded: (index, object) => configModel.appendCategory(object)
-        onObjectRemoved: (index, object) => configModel.removeCategory(object)
+        onObjectAdded: configModel.appendCategory(object)
+        onObjectRemoved: configModel.removeCategory(object)
     }
 }

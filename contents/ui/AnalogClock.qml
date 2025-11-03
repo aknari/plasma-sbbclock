@@ -1,12 +1,9 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.1
-import QtMultimedia 6.7
 
 import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core as PlasmaCore
-import org.kde.ksvg 1.0 as KSvg
+import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.components 3.0 as PlasmaComponents
-import org.kde.plasma.plasma5support 2.0 as P5Support
 import org.kde.kirigami 2.20 as Kirigami
 
 Item {
@@ -25,18 +22,19 @@ Item {
             return (smoothSeconds * (360/59))
         }
     }
-    property bool showSecondsHand: Plasmoid.configuration.showSecondHand
-    property bool showTimezone: Plasmoid.configuration.showTimezoneString
+    property bool showSecondsHand: plasmoid.configuration.showSecondHand
+    property bool showTimezone: plasmoid.configuration.showTimezoneString
     property string timezoneString: ""
-    property real handScale: Math.min(width, height) / Math.max(face.naturalSize.width, face.naturalSize.height)
+    property real handScale: Math.min(width, height) / Math.max(face.nativeWidth, face.nativeHeight)
 
-    Layout.minimumWidth: Plasmoid.formFactor !== PlasmaCore.Types.Vertical ? height : Kirigami.Units.gridUnit
-    Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? width : Kirigami.Units.gridUnit
+    Layout.minimumWidth: plasmoid.formFactor !== PlasmaCore.Types.Vertical ? height : Kirigami.Units.gridUnit
+    Layout.minimumHeight: plasmoid.formFactor === PlasmaCore.Types.Vertical ? width : Kirigami.Units.gridUnit
 
-    KSvg.Svg {
+    PlasmaCore.Svg {
         id: clockSvg
         imagePath: Qt.resolvedUrl("../images/sbb-clock.svg")
     }
+
     function updateAllHands() {
         // This logic was previously in the onDataChanged and onTriggered handlers
         hourHandShadow.updateRotation(hours, minutes, secondHandRotation)
@@ -54,13 +52,11 @@ Item {
     onSmoothSecondsChanged: updateAllHands()
     onMinutesChanged: updateAllHands() // To update minute and hour hands
 
-
-
     Item {
         id: clock
         anchors.fill: parent
 
-        KSvg.SvgItem {
+        PlasmaCore.SvgItem {
             id: face
             anchors.centerIn: parent
             width: Math.min(parent.width, parent.height)
@@ -113,17 +109,17 @@ Item {
             svgScale: handScale
         }
 
-        KSvg.SvgItem {
+        PlasmaCore.SvgItem {
             id: center
-            width: naturalSize.width * (face.width / face.naturalSize.width)
-            height: naturalSize.height * (face.width / face.naturalSize.width)
+            width: nativeWidth * (face.width / face.nativeWidth)
+            height: nativeHeight * (face.width / face.nativeWidth)
             anchors.centerIn: parent
             svg: clockSvg
             elementId: "HandCenter"
         }
     }
 
-    KSvg.FrameSvgItem {
+    PlasmaCore.FrameSvgItem {
         id: timezoneBg
         anchors {
             horizontalCenter: parent.horizontalCenter
@@ -152,16 +148,16 @@ Item {
             var now = new Date()
             var currentSeconds = now.getSeconds()
             var currentMilliseconds = now.getMilliseconds()
-            
+
             // Calcular segundos suaves con mayor precisión
             smoothSeconds = currentSeconds + (currentMilliseconds / 1000)
-            
+
             // Actualizar todas las manecillas
             hourHandShadow.updateRotation(hours, minutes, secondHandRotation)
             hourHand.updateRotation(hours, minutes, secondHandRotation)
             minuteHandShadow.updateRotation(hours, minutes, secondHandRotation)
             minuteHand.updateRotation(hours, minutes, secondHandRotation)
-            
+
             if (showSecondsHand) {
                 secondHandShadow.updateRotation(hours, minutes, secondHandRotation)
                 secondHand.updateRotation(hours, minutes, secondHandRotation)
@@ -184,7 +180,7 @@ Item {
         hourHand.rotation = 0
         minuteHandShadow.rotation = 0
         minuteHand.rotation = 0
-        
+
         if (showSecondsHand) {
             secondHandShadow.rotation = 0
             secondHand.rotation = 0
@@ -200,7 +196,7 @@ Item {
             hourHand.rotation = hourRotation
             minuteHandShadow.rotation = minuteRotation
             minuteHand.rotation = minuteRotation
-            
+
             if (showSecondsHand) {
                 secondHandShadow.rotation = secondRotation
                 secondHand.rotation = secondRotation

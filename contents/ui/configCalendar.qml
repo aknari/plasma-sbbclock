@@ -6,16 +6,14 @@
     SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 */
 
-pragma ComponentBehavior: Bound
+import QtQuick 2.15
+import QtQuick.Layouts 1.1
 
-import QtQuick
-import QtQuick.Layouts
-
-import org.kde.plasma.plasmoid
-import org.kde.plasma.workspace.calendar as PlasmaCalendar
-import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid 2.0
+import org.kde.plasma.calendar 2.0 as PlasmaCalendar
+import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCMUtils
-import QtQuick.Controls as QQC2
+import QtQuick.Controls 2.15 as QQC2
 
 KCMUtils.SimpleKCM {
     id: calendarPage
@@ -24,19 +22,16 @@ KCMUtils.SimpleKCM {
     property alias cfg_showWeekNumbers: showWeekNumbers.checked
     property int cfg_firstDayOfWeek
 
-    // Esta propiedad es para el botón de aplicar, no la necesitamos ahora
-    // property bool unsavedChanges: false
-
     // Esta función guarda los plugins. La llamaremos directamente.
     function saveCalendarPlugins() {
-        Plasmoid.configuration.enabledCalendarPlugins = eventPluginsManager.enabledPlugins;
+        plasmoid.configuration.enabledCalendarPlugins = eventPluginsManager.enabledPlugins;
     }
 
     Kirigami.FormLayout {
         PlasmaCalendar.EventPluginsManager {
             id: eventPluginsManager
             Component.onCompleted: {
-                populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins);
+                populateEnabledPluginsList(plasmoid.configuration.enabledCalendarPlugins);
             }
         }
 
@@ -51,15 +46,33 @@ KCMUtils.SimpleKCM {
             Kirigami.FormData.label: i18nc("@label:listbox", "First day of week:")
             Layout.fillWidth: true
             textRole: "text"
-            model: [-1, 0, 1, 5, 6].map(day => ({ day, text: day === -1 ? i18nc("@item:inlistbox first day of week option", "Use region defaults") : Qt.locale().dayName(day) }))
-            onActivated: (index) => { cfg_firstDayOfWeek = model[index].day; }
-            currentIndex: model.findIndex(item => item.day === cfg_firstDayOfWeek)
+            model: {
+                var days = [-1, 0, 1, 5, 6];
+                var result = [];
+                for (var i = 0; i < days.length; i++) {
+                    var day = days[i];
+                    result.push({
+                        day: day,
+                        text: day === -1 ? i18nc("@item:inlistbox first day of week option", "Use region defaults") : Qt.locale().dayName(day)
+                    });
+                }
+                return result;
+            }
+            onActivated: { cfg_firstDayOfWeek = model[index].day; }
+            Component.onCompleted: {
+                for (var i = 0; i < model.length; i++) {
+                    if (model[i].day === cfg_firstDayOfWeek) {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+            }
         }
 
         Item {
             Kirigami.FormData.isSection: true
         }
-        
+
         ColumnLayout {
             id: calendarPluginsLayout
             spacing: Kirigami.Units.smallSpacing
@@ -69,11 +82,11 @@ KCMUtils.SimpleKCM {
                 id: calendarPluginsRepeater
                 model: eventPluginsManager.model
                 delegate: QQC2.CheckBox {
-                    required property var model
-                    text: model.display
-                    checked: model.checked
+                    property var itemModel: model
+                    text: itemModel.display
+                    checked: itemModel.checked
                     onClicked: {
-                        model.checked = checked;
+                        itemModel.checked = checked;
                         // Guardamos la configuración al hacer clic
                         calendarPage.saveCalendarPlugins();
                     }

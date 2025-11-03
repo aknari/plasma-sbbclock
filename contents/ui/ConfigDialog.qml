@@ -3,8 +3,8 @@
     SPDX-License-Identifier: BSD-2-Clause
 */
 
-import QtQuick
-import org.kde.plasma.configuration
+import QtQuick 2.15
+import org.kde.plasma.configuration 2.0
 
 ConfigModel {
     ConfigCategory {

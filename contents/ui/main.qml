@@ -1,32 +1,28 @@
-import QtQuick
-import QtQuick.Layouts
-import QtMultimedia
-import QtQuick.Controls
+import QtQuick 2.15
+import QtQuick.Layouts 1.1
 
-import org.kde.plasma.plasmoid
-import org.kde.plasma.core as PlasmaCore
-import org.kde.ksvg as KSvg
-import org.kde.plasma.components as PlasmaComponents
-import org.kde.plasma.plasma5support as P5Support
-import org.kde.kirigami as Kirigami
-import org.kde.plasma.workspace.calendar as PlasmaCalendar
-import org.kde.plasma.private.digitalclock
+import org.kde.plasma.plasmoid 2.0
+import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddons
+import org.kde.plasma.components 3.0 as PlasmaComponents
+import org.kde.kirigami 2.20 as Kirigami
+import org.kde.plasma.calendar 2.0 as PlasmaCalendar
 
 import "." as Local
 
-PlasmoidItem {
+Item {
     id: root
 
-    property bool useDigitalMode: Plasmoid.configuration.useDigitalMode
+    property bool useDigitalMode: plasmoid.configuration.useDigitalMode
 
     Plasmoid.backgroundHints: PlasmaCore.Types.ShadowBackground | PlasmaCore.Types.ConfigurableBackground
 
     readonly property string dateFormatString: setDateFormatString()
-    readonly property string timeFormat: Plasmoid.configuration.timeFormat || "hh:mm"
-    readonly property string timeFormatWithSeconds: Plasmoid.configuration.timeFormatWithSeconds || "hh:mm:ss"
+    readonly property string timeFormat: plasmoid.configuration.timeFormat || "hh:mm"
+    readonly property string timeFormatWithSeconds: plasmoid.configuration.timeFormatWithSeconds || "hh:mm:ss"
 
     readonly property date currentDateTimeInSelectedTimeZone: {
-        const data = dataSource.data[Plasmoid.configuration.lastSelectedTimezone];
+        const data = dataSource.data[plasmoid.configuration.lastSelectedTimezone];
         // The order of signal propagation is unspecified, so we might get
         // here before the dataSource has updated. Alternatively, a buggy
         // configuration view might set lastSelectedTimezone to a new time
@@ -46,14 +42,14 @@ PlasmoidItem {
 
     function initTimeZones() {
         const timeZones = [];
-        if (Plasmoid.configuration.selectedTimeZones.indexOf("Local") === -1) {
+        if (plasmoid.configuration.selectedTimeZones.indexOf("Local") === -1) {
             timeZones.push("Local");
         }
-        root.allTimeZones = timeZones.concat(Plasmoid.configuration.selectedTimeZones);
+        root.allTimeZones = timeZones.concat(plasmoid.configuration.selectedTimeZones);
     }
 
-    function timeForZone(timeZone: string, showSeconds: bool): string {
-        if (!compactRepresentationItem) {
+    function timeForZone(timeZone, showSeconds) {
+        if (!compactRepresentation) {
             return "";
         }
 
@@ -83,21 +79,21 @@ PlasmoidItem {
         return formattedTime;
     }
 
-    function displayStringForTimeZone(timeZone: string): string {
+    function displayStringForTimeZone(timeZone) {
         const data = dataSource.data[timeZone];
         if (data === undefined) {
             return timeZone;
         }
 
         // add the time zone string to the clock
-        if (Plasmoid.configuration.displayTimezoneAsCode) {
+        if (plasmoid.configuration.displayTimezoneAsCode) {
             return data["Timezone Abbreviation"];
         } else {
-            return TimeZonesI18n.i18nCity(data["Timezone"]);
+            return data["Timezone City"] || data["Timezone"];
         }
     }
 
-    function selectedTimeZonesDeduplicatingExplicitLocalTimeZone():/* [string] */var {
+    function selectedTimeZonesDeduplicatingExplicitLocalTimeZone() {
         const displayStringForLocalTimeZone = displayStringForTimeZone("Local");
         /*
          * Don't add this item if it's the same as the local time zone, which
@@ -110,31 +106,30 @@ PlasmoidItem {
          * the clocks list would show two entries for the same city. To avoid
          * this, let's suppress the duplicate.
          */
-        const isLiterallyLocalOrResolvesToSomethingOtherThanLocal = timeZone =>
-            timeZone === "Local" || displayStringForTimeZone(timeZone) !== displayStringForLocalTimeZone;
+        const isLiterallyLocalOrResolvesToSomethingOtherThanLocal = function(timeZone) {
+            return timeZone === "Local" || displayStringForTimeZone(timeZone) !== displayStringForLocalTimeZone;
+        }
 
-        return Plasmoid.configuration.selectedTimeZones
+        return plasmoid.configuration.selectedTimeZones
             .filter(isLiterallyLocalOrResolvesToSomethingOtherThanLocal)
-            .sort((a, b) => dataSource.data[a]["Offset"] - dataSource.data[b]["Offset"]);
+            .sort(function(a, b) { return dataSource.data[a]["Offset"] - dataSource.data[b]["Offset"]; });
     }
 
-    function timeZoneResolvesToLastSelectedTimeZone(timeZone: string): bool {
-        return timeZone === Plasmoid.configuration.lastSelectedTimezone
-            || displayStringForTimeZone(timeZone) === displayStringForTimeZone(Plasmoid.configuration.lastSelectedTimezone);
+    function timeZoneResolvesToLastSelectedTimeZone(timeZone) {
+        return timeZone === plasmoid.configuration.lastSelectedTimezone
+            || displayStringForTimeZone(timeZone) === displayStringForTimeZone(plasmoid.configuration.lastSelectedTimezone);
     }
 
-    P5Support.DataSource {
+    PlasmaCore.DataSource {
         id: dataSource
         engine: "time"
-        connectedSources: "Local"
+        connectedSources: ["Local"]
         interval: 1000
         onDataChanged: {
             var date = new Date(data["Local"]["DateTime"])
             hours = date.getHours()
             minutes = date.getMinutes()
             seconds = date.getSeconds()
-
-            checkAndPlaySignal()
         }
         Component.onCompleted: {
             dataChanged();
@@ -144,25 +139,25 @@ PlasmoidItem {
     property bool hasEventsToday: false
 
     function updateHasEventsToday() {
-        if (fullRepresentationItem && fullRepresentationItem.monthView && fullRepresentationItem.monthView.daysModel) {
+        if (plasmoid.expanded && monthView && monthView.daysModel) {
             var today = new Date();
             today.setHours(0, 0, 0, 0);
-            hasEventsToday = fullRepresentationItem.monthView.daysModel.eventsForDate(today).length > 0;
-            console.log("hasEventsToday updated:", hasEventsToday);
+            hasEventsToday = monthView.daysModel.eventsForDate(today).length > 0;
         } else {
             hasEventsToday = false;
         }
     }
 
     Connections {
-        target: root
-        function onExpandedChanged() {
-            if (root.expanded) {
+        target: plasmoid
+        onExpandedChanged: {
+            if (plasmoid.expanded) {
                 updateHasEventsToday();
             }
         }
     }
 
+    property PlasmaCalendar.MonthView monthView: null
 
     function setDateFormatString() {
         // remove "dddd" from the locale format string
@@ -187,25 +182,11 @@ PlasmoidItem {
             return (smoothSeconds * (360/59))
         }
     }
-    property bool showSecondsHand: Plasmoid.configuration.showSecondHand
-    property bool showTimezone: Plasmoid.configuration.showTimezoneString
-    property bool playHourGong: Plasmoid.configuration.playHourGong
-    property real volumeInput: Plasmoid.configuration.volumeSlider / 100
-    property string hourSignalSound: Plasmoid.configuration.hourSignalSound
-    property int hourSignalStartTime: Plasmoid.configuration.hourSignalStartTime
-    property int hourSignalEndTime: Plasmoid.configuration.hourSignalEndTime
-    property int hourSignalAdvance: Plasmoid.configuration.hourSignalAdvance
+    property bool showSecondsHand: plasmoid.configuration.showSecondHand
+    property bool showTimezone: plasmoid.configuration.showTimezoneString
     property int tzOffset
 
-    preferredRepresentation: compactRepresentation
-
-    MediaPlayer {
-        id: soundPlayer
-        source: hourSignalSound
-        audioOutput: AudioOutput {
-            volume: volumeInput
-        }
-    }
+    Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
 
     Timer {
         id: smoothSecondsTimer
@@ -217,7 +198,7 @@ PlasmoidItem {
             // Usar la hora local del sistema para la animación suave, es solo visual
             var currentSeconds = now.getSeconds()
             var currentMilliseconds = now.getMilliseconds()
-            
+
             // Calcular segundos suaves con mayor precisión
             smoothSeconds = currentSeconds + (currentMilliseconds / 1000)
         }
@@ -231,43 +212,25 @@ PlasmoidItem {
         }
     }
 
-    function checkAndPlaySignal() {
-        var date = new Date(dataSource.data["Local"]["DateTime"])
-        var currentMinute = date.getMinutes()
-        var currentSecond = date.getSeconds()
+    Plasmoid.compactRepresentation: Item {
+        id: compactRepresentation
 
-        if (minutes === 59 && 
-            (hourSignalAdvance === 0 ? currentSecond === 59 : currentSecond === 60 - hourSignalAdvance) && 
-            playHourGong && hours >= hourSignalStartTime && hours < hourSignalEndTime) {
-            soundPlayer.play()
-        }
-    }
-
-    compactRepresentation: Item {
-        id: representation
-        
-        // Replicate the sizing logic from the original digital clock:
-        // The minimum and maximum width are set to the content's required width.
-        // This makes the widget horizontally rigid, preventing the user from resizing it.
-        Layout.minimumWidth: useDigitalMode ? digitalClock.requiredWidth : analogClock.implicitWidth
-        Layout.maximumWidth: useDigitalMode ? digitalClock.requiredWidth : Infinity // Allow analog clock to be resized
-
-        // The height should be flexible to fill the panel.
+        Layout.minimumWidth: useDigitalMode ? digitalClock.requiredWidth : analogClock.Layout.minimumWidth
+        Layout.maximumWidth: useDigitalMode ? digitalClock.requiredWidth : -1
         Layout.fillHeight: true
 
         AnalogClock {
             id: analogClock
             anchors.fill: parent
             visible: !useDigitalMode
-            
-            // Pasar propiedades desde el root
+
             hours: root.hours
             minutes: root.minutes
             seconds: root.seconds
             smoothSeconds: root.smoothSeconds
             secondHandRotation: root.secondHandRotation
             showSecondsHand: root.showSecondsHand
-            timezoneString: root.showTimezone ? dataSource.data["Local"]["Timezone"] : ""
+            timezoneString: root.showTimezone ? (dataSource.data["Local"] ? dataSource.data["Local"]["Timezone"] : "") : ""
         }
 
         DigitalClock {
@@ -281,20 +244,22 @@ PlasmoidItem {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: function(mouse) {
-                if (mouse.button === Qt.LeftButton) {
-                    root.expanded = !root.expanded
-                }
+            onClicked: {
+                plasmoid.expanded = !plasmoid.expanded
             }
         }
     }
 
-    fullRepresentation: CalendarView {
+    Plasmoid.fullRepresentation: CalendarView {
         Layout.minimumWidth: Kirigami.Units.gridUnit * 40
         Layout.minimumHeight: Kirigami.Units.gridUnit * 25
+
+        onMonthViewChanged: {
+            root.monthView = monthView;
+        }
     }
 
-    toolTipItem: Loader {
+    Plasmoid.toolTipItem: Loader {
         id: tooltipLoader
 
         Layout.minimumWidth: item ? item.implicitWidth : 0
@@ -304,5 +269,4 @@ PlasmoidItem {
 
         source: Qt.resolvedUrl("Tooltip.qml")
     }
-
 }

@@ -7,12 +7,11 @@
 */
 
 import QtQuick 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Layouts 1.1
 import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.ksvg 1.0 as KSvg
 
-KSvg.SvgItem {
+PlasmaCore.SvgItem {
     id: handRoot
 
     property alias rotation: handRotation.angle
@@ -38,8 +37,8 @@ KSvg.SvgItem {
         return width/2;
     }
 
-    property real _fixedWidth: naturalSize.width * svgScale
-    property real _fixedHeight: naturalSize.height * svgScale
+    property real _fixedWidth: nativeWidth * svgScale
+    property real _fixedHeight: nativeHeight * svgScale
 
     width: Math.round(_fixedWidth) + (Math.round(_fixedWidth) % 2)
     height: Math.round(_fixedHeight) + (Math.round(_fixedHeight) % 2)
