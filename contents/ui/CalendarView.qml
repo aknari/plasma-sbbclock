@@ -341,7 +341,7 @@ Item {
             visible: worldClocks.visible && agenda.visible
 
             Layout.fillWidth: true
-            Layout.preferredHeight: naturalSize.height
+            Layout.preferredHeight: nativeHeight
 
             svg: PlasmaCore.Svg { imagePath: "widgets/line" }
             elementId: "horizontal-line"
@@ -452,7 +452,7 @@ Item {
             bottom: parent.bottom
         }
 
-        width: naturalSize.width
+        width: nativeWidth
         visible: calendar.showAgenda || calendar.showClocks
 
         svg: PlasmaCore.Svg { imagePath: "widgets/line" }

@@ -1,8 +1,8 @@
 import QtQuick 2.15
 import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.components 3.0 as PlasmaComponents
-import org.kde.plasma.extras as PlasmaExtras
+import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kirigami 2.20 as Kirigami
 
 Item {
@@ -25,30 +25,30 @@ Item {
     readonly property real requiredHeight: contentLayout.height
 
     // Configuration properties
-    readonly property bool showSeconds: Plasmoid.configuration.showSecondHand ?? false
-    readonly property bool showTimezone: Plasmoid.configuration.showTimezoneString ?? false
-    readonly property bool showDate: Plasmoid.configuration.showDate ?? true
-    readonly property bool transparentBackground: Plasmoid.configuration.transparentBackground ?? false
-    readonly property bool blinkingTimeSeparator: Plasmoid.configuration.blinkingTimeSeparator ?? false
-    readonly property bool useCustomColors: Plasmoid.configuration.useCustomColors ?? false
-    readonly property color timeColor: Plasmoid.configuration.timeColor ?? PlasmaCore.Theme.textColor
-    readonly property color dateColor: Plasmoid.configuration.dateColor ?? PlasmaCore.Theme.textColor
-    
+    readonly property bool showSeconds: plasmoid.configuration.showSecondHand ? plasmoid.configuration.showSecondHand : false
+    readonly property bool showTimezone: plasmoid.configuration.showTimezoneString ? plasmoid.configuration.showTimezoneString : false
+    readonly property bool showDate: plasmoid.configuration.showDate !== undefined ? plasmoid.configuration.showDate : true
+    readonly property bool transparentBackground: plasmoid.configuration.transparentBackground ? plasmoid.configuration.transparentBackground : false
+    readonly property bool blinkingTimeSeparator: plasmoid.configuration.blinkingTimeSeparator ? plasmoid.configuration.blinkingTimeSeparator : false
+    readonly property bool useCustomColors: plasmoid.configuration.useCustomColors ? plasmoid.configuration.useCustomColors : false
+    readonly property color timeColor: plasmoid.configuration.timeColor || PlasmaCore.Theme.textColor
+    readonly property color dateColor: plasmoid.configuration.dateColor || PlasmaCore.Theme.textColor
+
     // Time format handling
-    readonly property string timeFormat: Plasmoid.configuration.timeFormat || "hh:mm"
+    readonly property string timeFormat: plasmoid.configuration.timeFormat || "hh:mm"
 
     // Use system locale for formatting
     readonly property string effectiveTimeFormat: timeFormat
 
     // Date format handling
-    readonly property string dateFormat: Plasmoid.configuration.dateFormat || "ddd, MMM d"
-    
+    readonly property string dateFormat: plasmoid.configuration.dateFormat || "ddd, MMM d"
+
     // Font properties
-    readonly property int timeFontSize: Plasmoid.configuration.timeFontSize ?? 24
-    readonly property int dateFontSize: Plasmoid.configuration.dateFontSize ?? 18
-    readonly property bool timeIsBold: Plasmoid.configuration.timeIsBold ?? false
-    readonly property bool dateIsBold: Plasmoid.configuration.dateIsBold ?? false
-    readonly property string fontFamily: Plasmoid.configuration.fontFamily ?? ""
+    readonly property int timeFontSize: plasmoid.configuration.timeFontSize !== undefined ? plasmoid.configuration.timeFontSize : 24
+    readonly property int dateFontSize: plasmoid.configuration.dateFontSize !== undefined ? plasmoid.configuration.dateFontSize : 18
+    readonly property bool timeIsBold: plasmoid.configuration.timeIsBold ? plasmoid.configuration.timeIsBold : false
+    readonly property bool dateIsBold: plasmoid.configuration.dateIsBold ? plasmoid.configuration.dateIsBold : false
+    readonly property string fontFamily: plasmoid.configuration.fontFamily || ""
 
     property bool separatorVisible: true
 
@@ -82,10 +82,11 @@ Item {
         if (processedFormat.includes('"')) {
             var baseFormat = processedFormat.replace(/"[^"]*"/g, "");
             var formattedDate = date.toLocaleDateString(Qt.locale(), baseFormat);
-            
+
             var parts = processedFormat.match(/"[^"]*"|[^"]+/g);
             var result = "";
-            parts.forEach(part => {
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
                 if (part.startsWith('"') && part.endsWith('"')) {
                     result += part.slice(1, -1);
                 } else {
@@ -99,7 +100,7 @@ Item {
                     }
                     result += formatted;
                 }
-            });
+            }
             return result;
         }
         
@@ -152,7 +153,7 @@ Item {
             text: {
                 if (!timeSource) return "--:--"
                 var now = new Date(timeSource);
-                var format = Plasmoid.configuration.timeFormat;
+                var format = plasmoid.configuration.timeFormat;
                 if (blinkingTimeSeparator) {
                     var seconds = now.getSeconds();
                     if (seconds % 2 !== 0) {  // Apaga en segundos impares
@@ -177,8 +178,8 @@ Item {
             font.weight: dateIsBold ? Font.Bold : Font.Normal
             font.family: fontFamily || "Noto Sans"
             color: {
-                if (hasEventsToday && Plasmoid.configuration.showEventColor) {
-                    return Plasmoid.configuration.eventColor;
+                if (hasEventsToday && plasmoid.configuration.showEventColor) {
+                    return plasmoid.configuration.eventColor;
                 } else if (useCustomColors) {
                     return dateColor;
                 } else {
