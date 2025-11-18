@@ -4,12 +4,18 @@
         "Authors": [
             {
                 "Email": "tomas.bautista1@gmail.com",
+                "Url": "https://github.com/aknari",
                 "Name": "T. Bautista"
             }
         ],
         "BugReportUrl": "",
         "Category": "Date and Time",
         "Description": "An analog/digital clock",
+        "Description[es]": "Un reloj analógico/digital",
+        "Description[fr]": "Une horloge analogique/numérique",
+        "Description[de]": "Eine analoge/digitale Uhr",
+        "Description[nl]": "Een analoge/digitale klok",
+        "Description[lv]": "Analogs/digitāls pulkstenis",
         "EnabledByDefault": true,
         "FormFactors": [
             "tablet",
@@ -20,7 +26,7 @@
         "Id": "sbbclock",
         "License": "BSD-2-Clause",
         "Name": "SBB Clock",
-        "Website": "https://userbase.kde.org/Plasma/Clocks",
+        "Website": "https://github.com/aknari/plasma-sbbclock",
         "Version": "1.0"
     },
     "X-Plasma-API": "declarativeappletscript",
