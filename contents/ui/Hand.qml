@@ -53,29 +53,60 @@ KSvg.SvgItem {
 
     svg: clockSvg
 
-    // Propiedades de rotación
+    // Propiedades de rotación recibidas desde el componente padre
     property real hours: 0
     property real minutes: 0
     property real secondHandRotation: 0
+    property int handAnimationMode: 0
 
-    // Función para normalizar ángulos
+    /**
+     * Normaliza un ángulo al rango [0, 360)
+     * 
+     * Asegura que todos los ángulos estén en el rango estándar de 0 a 360 grados,
+     * facilitando las comparaciones y evitando valores negativos o mayores a 360.
+     * 
+     * @param angle - Ángulo en grados (puede ser negativo o > 360)
+     * @returns Ángulo normalizado en el rango [0, 360)
+     * 
+     * Ejemplos:
+     *   normalizeRotation(370) → 10
+     *   normalizeRotation(-30) → 330
+     *   normalizeRotation(720) → 0
+     */
     function normalizeRotation(angle) {
         angle = angle % 360;
         return angle < 0 ? angle + 360 : angle;
     }
 
-    // Propiedades para gestionar la rotación
+    // Propiedades para gestionar la rotación y evitar saltos visuales al iniciar
     property real targetRotation: 0
-    property bool isInitializing: true
+    property bool isInitializing: true  // Previene animación desde 0° al cargar el widget
 
-    // Función de cálculo de rotación
+    /**
+     * Calcula el ángulo de rotación apropiado para cada tipo de manecilla
+     * 
+     * Fórmulas matemáticas:
+     * - Manecilla de hora: 30°/hora (360°÷12 horas) + 0.5°/minuto (ajuste fino)
+     *   Ejemplo: 3:30 → (3 × 30) + (30 ÷ 2) = 90° + 15° = 105°
+     * 
+     * - Manecilla de minutos: 6°/minuto (360°÷60 minutos)
+     *   Ejemplo: 30 minutos → 30 × 6 = 180°
+     * 
+     * - Manecilla de segundos: Calculada en main.qml según el modo (SBB/Normal/Tick)
+     *   Modo SBB: Recorre 360° en 59 segundos, pausa en el segundo 60
+     * 
+     * @param hours - Hora actual (0-23)
+     * @param minutes - Minutos actuales (0-59)
+     * @param secondHandRotation - Rotación del segundero (calculada externamente)
+     * @returns Ángulo normalizado en grados (0-360)
+     */
     function calculateRotation(hours, minutes, secondHandRotation) {
-        // Durante la inicialización, mantener en 0 grados
+        // Durante la inicialización, mantener en 0 grados para evitar saltos visuales
         if (isInitializing) {
             return 0
         }
 
-        // Calcular rotación basada en el tipo de manecilla
+        // Calcular rotación basada en el tipo de manecilla (identificada por elementId)
         return normalizeRotation(
             elementId === "HourHand" ? (hours * 30 + minutes/2) :
             elementId === "HourHandShadow" ? (hours * 30 + minutes/2) :
@@ -86,12 +117,22 @@ KSvg.SvgItem {
         )
     }
 
-    // Función de actualización de rotación
+    /**
+     * Actualiza la rotación de la manecilla con los valores actuales de tiempo
+     * 
+     * Esta función es llamada desde AnalogClock.qml cada vez que cambia el tiempo.
+     * Calcula la nueva rotación objetivo y gestiona la transición desde el estado
+     * de inicialización al estado normal de funcionamiento.
+     * 
+     * @param hours - Hora actual (0-23)
+     * @param minutes - Minutos actuales (0-59)
+     * @param secondHandRotation - Rotación del segundero
+     */
     function updateRotation(hours, minutes, secondHandRotation) {
-        // Calcular nueva rotación
+        // Calcular nueva rotación objetivo
         targetRotation = calculateRotation(hours, minutes, secondHandRotation)
 
-        // Transición de inicialización a estado normal
+        // Transición de inicialización a estado normal (se ejecuta solo una vez)
         if (isInitializing) {
             Qt.callLater(function() {
                 isInitializing = false
@@ -116,9 +157,21 @@ KSvg.SvgItem {
         }
         Behavior on angle {
             RotationAnimation {
-                duration: Kirigami.Units.longDuration
                 direction: RotationAnimation.Clockwise
-                alwaysRunToEnd: true
+                duration: {
+                    // En modo Tick (2), usar animación rápida para el segundero
+                    if (handAnimationMode === 2 && elementId.indexOf("Second") > -1) {
+                        return Kirigami.Units.shortDuration
+                    }
+                    return Kirigami.Units.longDuration
+                }
+                easing.type: {
+                    // En modo Tick (2), usar efecto de rebote elástico para el segundero
+                    if (handAnimationMode === 2 && elementId.indexOf("Second") > -1) {
+                        return Easing.OutElastic
+                    }
+                    return Easing.InOutQuad
+                }
             }
         }
     }

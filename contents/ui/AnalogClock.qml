@@ -13,8 +13,9 @@ Item {
     id: analogclock
 
     property int hours
-    property int minutes
+    property real minutes
     property int seconds
+    property int handAnimationMode: 0
     property real smoothSeconds: seconds
     property real secondHandRotation: {
         // Recorrer 360 grados en 59 segundos, terminar en 0 en el segundo 60
@@ -28,6 +29,16 @@ Item {
     property bool showSecondsHand: Plasmoid.configuration.showSecondHand
     property bool showTimezone: Plasmoid.configuration.showTimezoneString
     property string timezoneString: ""
+    
+    /**
+     * Factor de escala para las manecillas del reloj
+     * 
+     * Calcula el factor de escala necesario para que las manecillas SVG
+     * se ajusten correctamente al tamaño de la esfera del reloj, manteniendo
+     * las proporciones correctas independientemente del tamaño del widget.
+     * 
+     * Fórmula: min(ancho, alto) del widget / max(ancho, alto) natural del SVG
+     */
     property real handScale: Math.min(width, height) / Math.max(face.naturalSize.width, face.naturalSize.height)
 
     Layout.minimumWidth: Plasmoid.formFactor !== PlasmaCore.Types.Vertical ? height : Kirigami.Units.gridUnit
@@ -37,22 +48,41 @@ Item {
         id: clockSvg
         imagePath: Qt.resolvedUrl("../images/sbb-clock.svg")
     }
+    /**
+     * Actualiza la rotación de todas las manecillas del reloj
+     * 
+     * Esta función centraliza la actualización de todas las manecillas (hora, minutos, segundos)
+     * incluyendo sus sombras. Se llama desde:
+     * - El timer de animación suave (cada 50ms) cuando showSecondsHand está activo
+     * - Los handlers onSmoothSecondsChanged y onMinutesChanged
+     * 
+     * El orden de actualización es importante: primero hora y minutos, luego segundos,
+     * para mantener la sincronización correcta en los cambios de minuto.
+     */
     function updateAllHands() {
-        // This logic was previously in the onDataChanged and onTriggered handlers
+        // Actualizar manecillas de hora (incluye ajuste fino por minutos)
         hourHandShadow.updateRotation(hours, minutes, secondHandRotation)
         hourHand.updateRotation(hours, minutes, secondHandRotation)
+        
+        // Actualizar manecillas de minutos
         minuteHandShadow.updateRotation(hours, minutes, secondHandRotation)
         minuteHand.updateRotation(hours, minutes, secondHandRotation)
 
+        // Actualizar manecillas de segundos (solo si están visibles)
         if (showSecondsHand) {
             secondHandShadow.updateRotation(hours, minutes, secondHandRotation)
             secondHand.updateRotation(hours, minutes, secondHandRotation)
         }
     }
 
-    // Call updates when the relevant properties from main.qml change
+    // Actualizar todas las manecillas cuando cambian los segundos suaves (animación continua)
     onSmoothSecondsChanged: updateAllHands()
-    onMinutesChanged: updateAllHands() // To update minute and hour hands
+    
+    // Actualizar cuando cambian los minutos (importante para sincronización hora/minuto)
+    onMinutesChanged: updateAllHands()
+    
+    // En modo Tick, actualizar cuando cambian los segundos (ya que el timer está apagado)
+    onSecondsChanged: if (handAnimationMode === 2) updateAllHands()
 
 
 
@@ -143,34 +173,10 @@ Item {
         }
     }
 
-    Timer {
-        id: smoothSecondsTimer
-        interval: 50  // Actualizar cada 50ms
-        repeat: true
-        running: showSecondsHand
-        onTriggered: {
-            var now = new Date()
-            var currentSeconds = now.getSeconds()
-            var currentMilliseconds = now.getMilliseconds()
-            
-            // Calcular segundos suaves con mayor precisión
-            smoothSeconds = currentSeconds + (currentMilliseconds / 1000)
-            
-            // Actualizar todas las manecillas
-            hourHandShadow.updateRotation(hours, minutes, secondHandRotation)
-            hourHand.updateRotation(hours, minutes, secondHandRotation)
-            minuteHandShadow.updateRotation(hours, minutes, secondHandRotation)
-            minuteHand.updateRotation(hours, minutes, secondHandRotation)
-            
-            if (showSecondsHand) {
-                secondHandShadow.updateRotation(hours, minutes, secondHandRotation)
-                secondHand.updateRotation(hours, minutes, secondHandRotation)
-            }
-        }
-    }
+
 
     Component.onCompleted: {
-        smoothSecondsTimer.triggered()
+        updateAllHands()
     }
 
     function normalizeRotation(angle) {

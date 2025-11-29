@@ -18,6 +18,7 @@ PlasmoidItem {
     id: root
 
     property bool useDigitalMode: Plasmoid.configuration.useDigitalMode
+    property int handAnimationMode: Plasmoid.configuration.handAnimationMode || 0
 
     Plasmoid.backgroundHints: PlasmaCore.Types.ShadowBackground | PlasmaCore.Types.ConfigurableBackground
 
@@ -44,6 +45,13 @@ PlasmoidItem {
         return new Date(nowUtcMilliseconds + selectedTimeZoneOffsetMilliseconds);
     }
 
+    /**
+     * Inicializa la lista de zonas horarias
+     * 
+     * Asegura que "Local" (zona horaria del sistema) esté siempre presente
+     * en la lista de zonas horarias, incluso si el usuario no la ha añadido
+     * explícitamente en la configuración.
+     */
     function initTimeZones() {
         const timeZones = [];
         if (Plasmoid.configuration.selectedTimeZones.indexOf("Local") === -1) {
@@ -52,6 +60,17 @@ PlasmoidItem {
         root.allTimeZones = timeZones.concat(Plasmoid.configuration.selectedTimeZones);
     }
 
+    /**
+     * Formatea la hora para una zona horaria específica
+     * 
+     * Obtiene la hora actual de una zona horaria del DataSource y la formatea
+     * según las preferencias del usuario (con o sin segundos). Si la fecha de
+     * la zona horaria es diferente a la local, añade la fecha entre paréntesis.
+     * 
+     * @param timeZone - Identificador de la zona horaria (ej: "Europe/London", "Local")
+     * @param showSeconds - Si debe mostrar los segundos en el formato
+     * @returns String con la hora formateada, ej: "14:30" o "14:30 (Tomorrow)"
+     */
     function timeForZone(timeZone: string, showSeconds: bool): string {
         if (!compactRepresentationItem) {
             return "";
@@ -83,6 +102,16 @@ PlasmoidItem {
         return formattedTime;
     }
 
+    /**
+     * Obtiene el nombre legible de una zona horaria
+     * 
+     * Convierte el identificador técnico de una zona horaria en un string
+     * legible para el usuario, ya sea como código (ej: "GMT") o como nombre
+     * de ciudad (ej: "London"), según la configuración del usuario.
+     * 
+     * @param timeZone - Identificador de la zona horaria
+     * @returns String legible de la zona horaria
+     */
     function displayStringForTimeZone(timeZone: string): string {
         const data = dataSource.data[timeZone];
         if (data === undefined) {
@@ -129,17 +158,100 @@ PlasmoidItem {
         connectedSources: "Local"
         interval: 1000
         onDataChanged: {
-            var date = new Date(data["Local"]["DateTime"])
-            hours = date.getHours()
-            minutes = date.getMinutes()
-            seconds = date.getSeconds()
-
+            // DataSource solo se usa para metadatos y offsets de zonas horarias
+            // La hora local se gestiona con el systemTimer de alta precisión
             checkAndPlaySignal()
         }
         Component.onCompleted: {
-            dataChanged();
+            dataSource.connectedSources = sources
+            
+            // Inicialización inmediata para evitar que empiece en 00:00
+            var now = new Date()
+            hours = now.getHours()
+            minutes = now.getMinutes()
+            seconds = now.getSeconds()
+            currentDateTime = now
+            
+            if (handAnimationMode === 1) {
+                smoothMinutes = minutes + (seconds / 60.0)
+            } else {
+                smoothMinutes = minutes
+            }
         }
     }
+
+    // Variables para sincronización precisa
+    property double lastDataSourceUpdate: 0
+    property int dataSourceSeconds: 0
+    property int dataSourceMilliseconds: 0
+    
+    // Propiedad auxiliar para forzar actualizaciones del binding de smoothSeconds
+    property double timePulse: 0
+    
+    // Fecha y hora actual sincronizada con el sistema (para DigitalClock)
+    property var currentDateTime: new Date()
+
+    /**
+     * Timer maestro de alta precisión
+     * Actualiza la hora del sistema independientemente del DataSource
+     * Garantiza sincronización perfecta con el reloj del sistema
+     */
+    Timer {
+        id: systemTimer
+        interval: 50 // 20 FPS
+        repeat: true
+        running: true
+        triggeredOnStart: true
+        onTriggered: {
+            var now = new Date()
+            timePulse = now.getTime()
+            currentDateTime = now
+            
+            // Actualizar propiedades de tiempo base
+            var newHours = now.getHours()
+            var newMinutes = now.getMinutes()
+            var newSeconds = now.getSeconds()
+            var newMilliseconds = now.getMilliseconds()
+            
+            // Actualizar variables de sincronización para smoothSeconds
+            lastDataSourceUpdate = timePulse
+            dataSourceSeconds = newSeconds
+            dataSourceMilliseconds = newMilliseconds
+            
+            // Actualizar horas y segundos
+            if (hours !== newHours) hours = newHours
+            if (seconds !== newSeconds) seconds = newSeconds
+            
+            // Calcular smoothMinutes atómicamente para evitar saltos
+            if (handAnimationMode === 1) { // Smooth
+                var totalMinutes = newMinutes + (newSeconds / 60.0) + (newMilliseconds / 60000.0)
+                if (Math.abs(smoothMinutes - totalMinutes) > 0.0001) {
+                    smoothMinutes = totalMinutes
+                }
+            } else {
+                smoothMinutes = newMinutes
+            }
+            
+            // Lógica de minutero (con o sin adelanto)
+            if (handAnimationMode === 0 && !useDigitalMode) {
+                // Modo SBB: Adelanto de 200ms
+                var totalMs = (newSeconds * 1000) + newMilliseconds
+                if (totalMs >= 59800) {
+                    var nextMinute = newMinutes + 1
+                    if (nextMinute >= 60) nextMinute = 0
+                    if (minutes !== nextMinute) minutes = nextMinute
+                } else if (totalMs < 1000 && minutes !== newMinutes) {
+                    // Corrección por si el timer saltó el intervalo exacto
+                    minutes = newMinutes
+                }
+            } else {
+                // Otros modos: Actualización normal
+                if (minutes !== newMinutes) minutes = newMinutes
+            }
+        }
+    }
+
+
 
     property bool hasEventsToday: false
 
@@ -164,6 +276,17 @@ PlasmoidItem {
     }
 
 
+    /**
+     * Genera el formato de fecha eliminando el día de la semana
+     * 
+     * Toma el formato de fecha largo del locale del sistema y elimina la parte
+     * del día de la semana ("dddd"), que siempre aparece al inicio o al final
+     * en todos los locales.
+     * 
+     * Ejemplo: "dddd, d 'de' MMMM 'de' yyyy" → "d 'de' MMMM 'de' yyyy"
+     * 
+     * @returns String con el formato de fecha sin el día de la semana
+     */
     function setDateFormatString() {
         // remove "dddd" from the locale format string
         // /all/ locales in LongFormat have "dddd" either
@@ -177,14 +300,50 @@ PlasmoidItem {
     property int hours
     property int minutes
     property int seconds
-    property real smoothSeconds: seconds
+    
+    // Segundos suaves sincronizados con DataSource
+    property real smoothSeconds: {
+        if (useDigitalMode) return seconds
+        
+        // Dependencia explícita del pulso de tiempo
+        var pulse = timePulse
+        
+        // Calcular segundos basados en el tiempo transcurrido desde la última actualización del DataSource
+        var elapsed = Date.now() - lastDataSourceUpdate
+        var val = dataSourceSeconds + (dataSourceMilliseconds + elapsed) / 1000.0
+        
+        // Manejar desbordamiento (ej: si el timer se retrasa un poco)
+        if (val >= 60) val = val % 60
+        
+        return val
+    }
+    
+    // Minutos suaves para modo Smooth (actualizado en systemTimer)
+    property real smoothMinutes: minutes
+    
+    /**
+     * Rotación del segundero en grados (0-360)
+     * 
+     * Calcula la rotación según el modo de animación seleccionado:
+     * - Modo 0 (SBB): 59 segundos + pausa (comportamiento original)
+     * - Modo 1 (Smooth): Movimiento continuo (60 segundos)
+     * - Modo 2 (Tick): Saltos discretos por segundo (sin interpolación)
+     */
     property real secondHandRotation: {
-        // Recorrer 360 grados en 59 segundos, terminar en 0 en el segundo 60
-        if (smoothSeconds >= 59) {
-            return 0  // Volver a 0 grados en el segundo 60
-        } else {
-            // Calcular rotación para que recorra 360 grados en 59 segundos
-            return (smoothSeconds * (360/59))
+        switch(handAnimationMode) {
+            case 0: // SBB - 59 segundos + pausa
+                // Recorrer 360 grados en 59 segundos, terminar en 0 en el segundo 60
+                if (smoothSeconds >= 59) {
+                    return 0
+                } else {
+                    return (smoothSeconds * (360/59))
+                }
+            case 1: // Smooth - 60 segundos continuo
+                return smoothSeconds * 6  // 360/60 = 6° por segundo
+            case 2: // Tick - saltos discretos
+                return seconds * 6
+            default:
+                return smoothSeconds * (360/59)
         }
     }
     property bool showSecondsHand: Plasmoid.configuration.showSecondHand
@@ -231,6 +390,17 @@ PlasmoidItem {
         }
     }
 
+    /**
+     * Verifica y reproduce la señal horaria si corresponde
+     * 
+     * Comprueba si se cumplen todas las condiciones para reproducir el sonido:
+     * - Estamos en el minuto 59
+     * - Estamos en el segundo configurado (59 - hourSignalAdvance)
+     * - La señal horaria está habilitada
+     * - La hora actual está dentro del rango configurado
+     * 
+     * Ejemplo: Si hourSignalAdvance = 5, el sonido se reproduce a las XX:59:55
+     */
     function checkAndPlaySignal() {
         var date = new Date(dataSource.data["Local"]["DateTime"])
         var currentMinute = date.getMinutes()
@@ -262,20 +432,24 @@ PlasmoidItem {
             
             // Pasar propiedades desde el root
             hours: root.hours
-            minutes: root.minutes
+            minutes: root.handAnimationMode === 1 ? root.smoothMinutes : root.minutes // Usar minutos suaves en modo Smooth
             seconds: root.seconds
             smoothSeconds: root.smoothSeconds
             secondHandRotation: root.secondHandRotation
             showSecondsHand: root.showSecondsHand
             timezoneString: root.showTimezone ? dataSource.data["Local"]["Timezone"] : ""
+            handAnimationMode: root.handAnimationMode
         }
 
         DigitalClock {
             id: digitalClock
             anchors.fill: parent
-            visible: useDigitalMode
-            timeSource: dataSource.data["Local"] ? dataSource.data["Local"]["DateTime"] : new Date()
-            timezoneString: showTimezone ? (dataSource.data["Local"] ? dataSource.data["Local"]["Timezone"] : "") : ""
+            visible: root.useDigitalMode
+            
+            // Usar siempre currentDateTime sincronizado con systemTimer para hora local
+            timeSource: root.currentDateTime
+            
+            timezoneString: root.showTimezone ? dataSource.data["Local"]["Timezone"] : ""
             hasEventsToday: root.hasEventsToday
         }
 

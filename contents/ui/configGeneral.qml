@@ -42,6 +42,8 @@ KCMUtils.SimpleKCM {
     property int cfg_hourSignalAdvance
     property int cfg_volumeSlider
     property string cfg_fontFamily
+    property int cfg_handAnimationMode
+
 
     property string cfg_dateDisplayFormat: cfg_dateDisplayFormatDefault
     property bool cfg_displayTimezoneAsCode: cfg_displayTimezoneAsCodeDefault
@@ -94,6 +96,8 @@ KCMUtils.SimpleKCM {
     readonly property bool cfg_useCustomColorsDefault: false
     readonly property bool cfg_useDigitalModeDefault: true
     readonly property int cfg_volumeSliderDefault: 100
+    readonly property int cfg_handAnimationModeDefault: 0
+
 
     Kirigami.FormLayout {
         id: generalPage
@@ -127,6 +131,26 @@ KCMUtils.SimpleKCM {
                     checked: cfg_showTimezoneString
                     onCheckedChanged: cfg_showTimezoneString = checked
                 }
+
+        QQC2.Label {
+            text: i18n("Hand Animation Style:")
+            visible: !useDigitalMode.checked
+            Kirigami.FormData.label: i18n("Animation:")
+        }
+
+        QQC2.ComboBox {
+            id: handAnimationModeCombo
+            visible: !useDigitalMode.checked
+            enabled: !useDigitalMode.checked
+            model: [
+                i18n("SBB (Swiss Railway) - 59 seconds + pause"),
+                i18n("Smooth - Continuous 60 seconds"),
+                i18n("Tick - Discrete jumps with bounce")
+            ]
+            currentIndex: cfg_handAnimationMode
+            onCurrentIndexChanged: cfg_handAnimationMode = currentIndex
+        }
+
 
         // Time Format section
     QQC2.Label {
@@ -241,6 +265,39 @@ KCMUtils.SimpleKCM {
                 }
 
         // Color options
+        QQC2.Label {
+            text: i18n("Quick Presets:")
+            visible: useDigitalMode.checked
+            Kirigami.FormData.label: i18n("Color Presets:")
+        }
+
+        Flow {
+            Layout.fillWidth: true
+            visible: useDigitalMode.checked
+            spacing: Kirigami.Units.smallSpacing
+
+            QQC2.Button {
+                text: i18n("Classic")
+                onClicked: applyColorPreset("classic")
+            }
+            QQC2.Button {
+                text: i18n("Nordic")
+                onClicked: applyColorPreset("nordic")
+            }
+            QQC2.Button {
+                text: i18n("Warm")
+                onClicked: applyColorPreset("warm")
+            }
+            QQC2.Button {
+                text: i18n("Matrix")
+                onClicked: applyColorPreset("matrix")
+            }
+            QQC2.Button {
+                text: i18n("High Contrast")
+                onClicked: applyColorPreset("contrast")
+            }
+        }
+
     QQC2.CheckBox {
                     id: useCustomColorsCheckBox
                     text: i18n("Use Custom Colors")
@@ -508,6 +565,44 @@ KCMUtils.SimpleKCM {
             if (fileDialog.selectedFile) {
                 hourSignalSoundField.text = fileDialog.selectedFile
             }
+        }
+    }
+
+    function applyColorPreset(presetName) {
+        // Activar colores personalizados automáticamente
+        cfg_useCustomColors = true;
+        
+        switch(presetName) {
+            case "classic":
+                cfg_timeColor = "#FFFFFF"; // Blanco
+                cfg_dateColor = "#CCCCCC"; // Gris claro
+                timeColorField.text = cfg_timeColor;
+                dateColorField.text = cfg_dateColor;
+                break;
+            case "nordic":
+                cfg_timeColor = "#88C0D0"; // Polar Night Blue
+                cfg_dateColor = "#81A1C1"; // Frost Blue
+                timeColorField.text = cfg_timeColor;
+                dateColorField.text = cfg_dateColor;
+                break;
+            case "warm":
+                cfg_timeColor = "#D08770"; // Aurora Orange
+                cfg_dateColor = "#EBCB8B"; // Aurora Yellow
+                timeColorField.text = cfg_timeColor;
+                dateColorField.text = cfg_dateColor;
+                break;
+            case "matrix":
+                cfg_timeColor = "#00FF00"; // Neon Green
+                cfg_dateColor = "#008F11"; // Darker Green
+                timeColorField.text = cfg_timeColor;
+                dateColorField.text = cfg_dateColor;
+                break;
+            case "contrast":
+                cfg_timeColor = "#FFFFFF"; // White
+                cfg_dateColor = "#FFFF00"; // Yellow
+                timeColorField.text = cfg_timeColor;
+                dateColorField.text = cfg_dateColor;
+                break;
         }
     }
 }

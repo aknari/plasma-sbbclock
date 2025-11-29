@@ -8,7 +8,15 @@ import org.kde.kirigami 2.20 as Kirigami
 Item {
     id: digitalClock
 
-    // Invisible helper to pre-calculate the maximum possible width, breaking the layout loop.
+    /**
+     * Helper invisible para pre-calcular el ancho máximo necesario
+     * 
+     * Este elemento no se muestra pero se usa para calcular el ancho que ocuparía
+     * el tiempo con los caracteres más anchos posibles ("88:88"). Esto evita que
+     * el widget cambie de tamaño cuando los dígitos cambian (ej: "11:11" vs "22:22").
+     * 
+     * Rompe el "layout loop" al proporcionar un ancho estable y predecible.
+     */
     PlasmaExtras.Heading {
         id: sizeHelper
         visible: false
@@ -20,7 +28,16 @@ Item {
         text: "88:88"
     }
 
-    // The requiredWidth is now stable because it's based on the pre-calculated helper.
+    /**
+     * Ancho requerido para el widget (calculado de forma estable)
+     * 
+     * Se basa en el sizeHelper pre-calculado para evitar cambios de tamaño
+     * durante las actualizaciones del reloj. Toma el máximo entre:
+     * - El ancho del helper ("88:88")
+     * - El ancho real pintado de cada elemento visible
+     * 
+     * El padding de +4 proporciona un pequeño margen de seguridad.
+     */
     readonly property real requiredWidth: Math.max(sizeHelper.implicitWidth, timeLabel.paintedWidth, dateLabel.paintedWidth, timezoneLabel.paintedWidth) + 4 // Add a small padding
     readonly property real requiredHeight: contentLayout.height
 
@@ -60,7 +77,22 @@ Item {
         onTriggered: separatorVisible = !separatorVisible
     }
 
-    // Define a custom date formatting function
+    /**
+     * Formatea una fecha según el patrón especificado con soporte para mayúsculas personalizadas
+     * 
+     * Extiende el formateo estándar de Qt con formatos especiales:
+     * - 'Dddd': Día de la semana con primera letra mayúscula ("Lunes")
+     * - 'DDDD': Día de la semana en mayúsculas completas ("LUNES")
+     * - Texto literal entre comillas dobles: "de", "at", etc.
+     * 
+     * @param date - Objeto Date a formatear
+     * @param format - Patrón de formato (ej: "Dddd, d 'de' MMMM")
+     * @returns String formateado según el patrón
+     * 
+     * Ejemplos:
+     *   formatDate(new Date(), "Dddd, d 'de' MMMM") → "Lunes, 28 de noviembre"
+     *   formatDate(new Date(), "DDDD d/M/yy") → "LUNES 28/11/25"
+     */
     function formatDate(date, format) {
         // Función auxiliar para capitalizar
         function capitalize(str) {
@@ -113,10 +145,10 @@ Item {
         return result;
     }
 
-    // Time properties that will be passed from main.qml
-    property var timeSource: new Date()
-    property string timezoneString: ""
-    property bool hasEventsToday: false
+    // Propiedades que se reciben desde main.qml
+    property var timeSource: new Date()      // Fuente de tiempo actual
+    property string timezoneString: ""       // String de zona horaria a mostrar
+    property bool hasEventsToday: false      // Si hay eventos hoy (para cambiar color de fecha)
 
     Rectangle {
         id: background
