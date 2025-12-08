@@ -79,8 +79,8 @@
     <entry name="hourSignalEndTime" type="Int">
       <default>23</default>
     </entry>
-    <entry name="hourSignalAdvance" type="Int">
-      <default>5</default>
+    <entry name="hourSignalAdvance" type="Double">
+      <default>5.0</default>
     </entry>
     <entry name="volumeSlider" type="Int">
       <default>50</default>

@@ -27,7 +27,7 @@
         "License": "BSD-2-Clause",
         "Name": "SBB Clock",
         "Website": "https://github.com/aknari/plasma-sbbclock",
-        "Version": "1.1"
+        "Version": "1.2"
     },
     "X-Plasma-API": "declarativeappletscript",
     "X-Plasma-MainScript": "ui/main.qml",

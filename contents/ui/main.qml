@@ -160,7 +160,6 @@ PlasmoidItem {
         onDataChanged: {
             // DataSource solo se usa para metadatos y offsets de zonas horarias
             // La hora local se gestiona con el systemTimer de alta precisión
-            checkAndPlaySignal()
         }
         Component.onCompleted: {
             dataSource.connectedSources = sources
@@ -207,6 +206,9 @@ PlasmoidItem {
             timePulse = now.getTime()
             currentDateTime = now
             
+            
+            checkAndPlaySignal()
+
             // Actualizar propiedades de tiempo base
             var newHours = now.getHours()
             var newMinutes = now.getMinutes()
@@ -353,7 +355,7 @@ PlasmoidItem {
     property string hourSignalSound: Plasmoid.configuration.hourSignalSound
     property int hourSignalStartTime: Plasmoid.configuration.hourSignalStartTime
     property int hourSignalEndTime: Plasmoid.configuration.hourSignalEndTime
-    property int hourSignalAdvance: Plasmoid.configuration.hourSignalAdvance
+    property double hourSignalAdvance: Plasmoid.configuration.hourSignalAdvance
     property int tzOffset
 
     preferredRepresentation: compactRepresentation
@@ -394,21 +396,59 @@ PlasmoidItem {
      * Verifica y reproduce la señal horaria si corresponde
      * 
      * Comprueba si se cumplen todas las condiciones para reproducir el sonido:
-     * - Estamos en el minuto 59
-     * - Estamos en el segundo configurado (59 - hourSignalAdvance)
+     * - Estamos cerca del minuto 59
+     * - El tiempo actual coincide con el tiempo objetivo (60s - adelanto)
      * - La señal horaria está habilitada
      * - La hora actual está dentro del rango configurado
-     * 
-     * Ejemplo: Si hourSignalAdvance = 5, el sonido se reproduce a las XX:59:55
      */
     function checkAndPlaySignal() {
-        var date = new Date(dataSource.data["Local"]["DateTime"])
-        var currentMinute = date.getMinutes()
-        var currentSecond = date.getSeconds()
+        if (!playHourGong || hours < hourSignalStartTime || hours >= hourSignalEndTime) {
+            return
+        }
 
-        if (minutes === 59 && 
-            (hourSignalAdvance === 0 ? currentSecond === 59 : currentSecond === 60 - hourSignalAdvance) && 
-            playHourGong && hours >= hourSignalStartTime && hours < hourSignalEndTime) {
+        // Calcular el momento objetivo (target) en ms dentro del minuto actual
+        // El objetivo es (60 - advance) segundos
+        // Ejemplo: adelanto 5.5s -> target = 54.5s = 54500ms
+        var targetMs = (60.0 - hourSignalAdvance) * 1000.0
+
+        // Tiempo actual en ms dentro del minuto
+        var currentMs = (currentDateTime.getSeconds() * 1000) + currentDateTime.getMilliseconds()
+        
+        // Tiempo del frame anterior (aproximado)
+        // systemTimer corre cada 50ms
+        var previousMs = currentMs - systemTimer.interval
+        // Si acabamos de cambiar de minuto (currentMs es pequeño), el previousMs sería negativo (final del minuto anterior)
+        // En ese caso, para simplificar la detección de cruce, podemos asumir que si currentMs < systemTimer.interval, venimos de 59999
+        
+        // Detectar cruce del umbral
+        // El caso normal es: previousMs < targetMs <= currentMs
+        // Pero hay que tener cuidado con el rollover del minuto si el target está muy cerca de 60s o 0s
+        
+        // Simplificación: Solo nos interesa si estamos en el minuto 59, O si el adelanto es 0 (target=60s/0s del siguiente)
+        // Si adelanto es 0, queremos sonar en 00:00 exacto.
+        
+        var isTargetReached = false
+        
+        if (hourSignalAdvance === 0) {
+             // Caso especial: sonar en punto (xx:00:00.000)
+             // Detectamos si acabamos de cambiar de minuto a 0
+             if (minutes === 0 && seconds === 0 && currentDateTime.getMilliseconds() < systemTimer.interval * 1.5) {
+                 isTargetReached = true
+             }
+        } else {
+            // Caso normal: sonar dentro del minuto 59
+            if (minutes === 59) {
+                if (currentMs >= targetMs && previousMs < targetMs) {
+                    isTargetReached = true
+                }
+            }
+        }
+        
+        // Evitar disparos múltiples muy seguidos (debounce simple por frame)
+        // Como systemTimer es el único que llama, la condición previous < target <= current garantiza un solo disparo
+        
+        if (isTargetReached) {
+            soundPlayer.source = hourSignalSound // Recargar source por si cambió config
             soundPlayer.play()
         }
     }

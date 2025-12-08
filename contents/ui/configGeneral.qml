@@ -39,7 +39,7 @@ KCMUtils.SimpleKCM {
     property string cfg_hourSignalSound
     property int cfg_hourSignalStartTime
     property int cfg_hourSignalEndTime
-    property int cfg_hourSignalAdvance
+    property double cfg_hourSignalAdvance
     property int cfg_volumeSlider
     property string cfg_fontFamily
     property int cfg_handAnimationMode
@@ -72,7 +72,7 @@ KCMUtils.SimpleKCM {
     readonly property var cfg_enabledCalendarPluginsDefault: []
     readonly property int cfg_firstDayOfWeekDefault: 1
     readonly property string cfg_fontFamilyDefault: "Noto Sans"
-    readonly property int cfg_hourSignalAdvanceDefault: 0
+    readonly property double cfg_hourSignalAdvanceDefault: 0.0
     readonly property int cfg_hourSignalEndTimeDefault: 0
     readonly property string cfg_hourSignalSoundDefault: ""
     readonly property int cfg_hourSignalStartTimeDefault: 0
@@ -484,11 +484,20 @@ KCMUtils.SimpleKCM {
     QQC2.SpinBox {
                     id: hourSignalAdvanceSpinBox
                     from: 0
-                    to: 60
-                    value: cfg_hourSignalAdvance
+                    to: 12 // 6.0 seconds * 2
+                    value: Math.round(cfg_hourSignalAdvance * 2)
                     enabled: playHourGongCheckBox.checked
-                    Kirigami.FormData.label: i18n("Advance:")
-                    onValueChanged: cfg_hourSignalAdvance = value
+                    Kirigami.FormData.label: i18n("Advance (seconds):")
+                    
+                    textFromValue: function(value, locale) {
+                        return (value / 2.0).toFixed(1)
+                    }
+                    
+                    valueFromText: function(text, locale) {
+                        return Math.round(parseFloat(text) * 2)
+                    }
+
+                    onValueChanged: cfg_hourSignalAdvance = value / 2.0
                 }
 
     QQC2.Slider {
