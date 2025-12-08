@@ -206,6 +206,11 @@ PlasmoidItem {
             timePulse = now.getTime()
             currentDateTime = now
             
+            if (now.getDate() !== persistentToday.getDate() || now.getMonth() !== persistentToday.getMonth() || now.getFullYear() !== persistentToday.getFullYear()) {
+                persistentToday = now
+                updateHasEventsToday()
+            }
+            
             
             checkAndPlaySignal()
 
@@ -257,25 +262,55 @@ PlasmoidItem {
 
     property bool hasEventsToday: false
 
+    // Fecha persistente para el calendario de fondo (actualizada solo al cambiar de día)
+    property date persistentToday: new Date()
+
+    PlasmaCalendar.EventPluginsManager {
+        id: eventPluginsManager
+        enabledPlugins: Plasmoid.configuration.enabledCalendarPlugins
+    }
+
+    PlasmaCalendar.MonthView {
+        id: bgMonthView
+        visible: false
+        width: 0
+        height: 0
+        
+        eventPluginsManager: eventPluginsManager
+        today: persistentToday
+        
+        onDaysModelChanged: updateHasEventsToday()
+    }
+
     function updateHasEventsToday() {
-        if (fullRepresentationItem && fullRepresentationItem.monthView && fullRepresentationItem.monthView.daysModel) {
+        if (bgMonthView && bgMonthView.daysModel) {
             var today = new Date();
             today.setHours(0, 0, 0, 0);
-            hasEventsToday = fullRepresentationItem.monthView.daysModel.eventsForDate(today).length > 0;
-            console.log("hasEventsToday updated:", hasEventsToday);
+            hasEventsToday = bgMonthView.daysModel.eventsForDate(today).length > 0;
         } else {
             hasEventsToday = false;
         }
     }
 
     Connections {
+        target: bgMonthView.daysModel
+        ignoreUnknownSignals: true
+        function onAgendaUpdated(updatedDate) {
+             updateHasEventsToday()
+        }
+    }
+
+
+    Connections {
         target: root
         function onExpandedChanged() {
             if (root.expanded) {
+                // When expanded, we might want to refresh, but the background model handles it now
                 updateHasEventsToday();
             }
         }
     }
+
 
 
     /**
