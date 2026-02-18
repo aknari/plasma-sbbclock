@@ -240,10 +240,10 @@ PlasmoidItem {
             }
             
             // Lógica de minutero (con o sin adelanto)
-            if (handAnimationMode === 0 && !useDigitalMode) {
-                // Modo SBB: Adelanto de 200ms
+            if ((handAnimationMode === 0 || handAnimationMode === 3) && !useDigitalMode) {
+                // Modo SBB/DB: Adelanto de 100ms
                 var totalMs = (newSeconds * 1000) + newMilliseconds
-                if (totalMs >= 59800) {
+                if (totalMs >= 59900) {
                     var nextMinute = newMinutes + 1
                     if (nextMinute >= 60) nextMinute = 0
                     if (minutes !== nextMinute) minutes = nextMinute
@@ -379,6 +379,19 @@ PlasmoidItem {
                 return smoothSeconds * 6  // 360/60 = 6° por segundo
             case 2: // Tick - saltos discretos
                 return seconds * 6
+            case 3: // DB - Elastic 59 seconds + pause
+                if (smoothSeconds >= 59) {
+                    return 0
+                } else {
+                    // Mapear 0-59 segundos reales a 0-60 "segundos DB"
+                    // Así el segundero recorre las 60 marcas (6° c/u) en 59s
+                    var dbSeconds = smoothSeconds * (60 / 59)
+                    var tick = Math.floor(dbSeconds)
+                    var f = dbSeconds - tick
+                    // Función de suavizado para el efecto elástico (acelerado al inicio, frenado al final)
+                    var easing = 1 - Math.pow(1 - f, 3)
+                    return (tick + easing) * 6
+                }
             default:
                 return smoothSeconds * (360/59)
         }

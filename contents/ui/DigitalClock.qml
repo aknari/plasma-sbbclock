@@ -177,6 +177,7 @@ Item {
             id: timeLabel
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
+            textFormat: PlasmaComponents.Text.StyledText
             font.pointSize: timeFontSize
             font.weight: timeIsBold ? Font.Bold : Font.Normal
             font.family: fontFamily || "Noto Sans"
@@ -185,14 +186,13 @@ Item {
                 if (!timeSource) return "--:--"
                 var now = new Date(timeSource);
                 var format = Plasmoid.configuration.timeFormat;
-                if (blinkingTimeSeparator) {
-                    var seconds = now.getSeconds();
-                    if (seconds % 2 !== 0) {  // Apaga en segundos impares
-                        format = format.replace(/:/g, " ");
-                    }
-                    // En pares, deja ":" normal
+                var formattedTime = Qt.formatDateTime(now, format);
+                
+                if (blinkingTimeSeparator && !separatorVisible) {
+                    // Reemplaza ":" por una versión transparente para mantener el ancho exacto
+                    return formattedTime.replace(/:/g, '<font color="transparent">:</font>');
                 }
-                return Qt.formatDateTime(now, format);
+                return formattedTime;
             }
 
         }

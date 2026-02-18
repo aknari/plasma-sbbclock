@@ -18,11 +18,9 @@ Item {
     property int handAnimationMode: 0
     property real smoothSeconds: seconds
     property real secondHandRotation: {
-        // Recorrer 360 grados en 59 segundos, terminar en 0 en el segundo 60
         if (smoothSeconds >= 59) {
-            return 0  // Volver a 0 grados en el segundo 60
+            return 0
         } else {
-            // Calcular rotación para que recorra 360 grados en 59 segundos
             return (smoothSeconds * (360/59))
         }
     }
@@ -30,61 +28,30 @@ Item {
     property bool showTimezone: Plasmoid.configuration.showTimezoneString
     property string timezoneString: ""
     
-    /**
-     * Factor de escala para las manecillas del reloj
-     * 
-     * Calcula el factor de escala necesario para que las manecillas SVG
-     * se ajusten correctamente al tamaño de la esfera del reloj, manteniendo
-     * las proporciones correctas independientemente del tamaño del widget.
-     * 
-     * Fórmula: min(ancho, alto) del widget / max(ancho, alto) natural del SVG
-     */
-    property real handScale: Math.min(width, height) / Math.max(face.naturalSize.width, face.naturalSize.height)
+    property real handScale: Math.min(width, height) / 200
 
     Layout.minimumWidth: Plasmoid.formFactor !== PlasmaCore.Types.Vertical ? height : Kirigami.Units.gridUnit
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? width : Kirigami.Units.gridUnit
 
     KSvg.Svg {
         id: clockSvg
-        imagePath: Qt.resolvedUrl("../images/sbb-clock.svg")
+        imagePath: handAnimationMode === 3 ? Qt.resolvedUrl("../images/db-clock.svg") : Qt.resolvedUrl("../images/sbb-clock.svg")
     }
-    /**
-     * Actualiza la rotación de todas las manecillas del reloj
-     * 
-     * Esta función centraliza la actualización de todas las manecillas (hora, minutos, segundos)
-     * incluyendo sus sombras. Se llama desde:
-     * - El timer de animación suave (cada 50ms) cuando showSecondsHand está activo
-     * - Los handlers onSmoothSecondsChanged y onMinutesChanged
-     * 
-     * El orden de actualización es importante: primero hora y minutos, luego segundos,
-     * para mantener la sincronización correcta en los cambios de minuto.
-     */
+
     function updateAllHands() {
-        // Actualizar manecillas de hora (incluye ajuste fino por minutos)
         hourHandShadow.updateRotation(hours, minutes, secondHandRotation)
         hourHand.updateRotation(hours, minutes, secondHandRotation)
-        
-        // Actualizar manecillas de minutos
         minuteHandShadow.updateRotation(hours, minutes, secondHandRotation)
         minuteHand.updateRotation(hours, minutes, secondHandRotation)
-
-        // Actualizar manecillas de segundos (solo si están visibles)
         if (showSecondsHand) {
             secondHandShadow.updateRotation(hours, minutes, secondHandRotation)
             secondHand.updateRotation(hours, minutes, secondHandRotation)
         }
     }
 
-    // Actualizar todas las manecillas cuando cambian los segundos suaves (animación continua)
     onSmoothSecondsChanged: updateAllHands()
-    
-    // Actualizar cuando cambian los minutos (importante para sincronización hora/minuto)
     onMinutesChanged: updateAllHands()
-    
-    // En modo Tick, actualizar cuando cambian los segundos (ya que el timer está apagado)
     onSecondsChanged: if (handAnimationMode === 2) updateAllHands()
-
-
 
     Item {
         id: clock
@@ -107,22 +74,8 @@ Item {
         }
 
         Hand {
-            id: hourHand
-            elementId: "HourHand"
-            rotationCenterHintId: "HourHandCenter"
-            svgScale: handScale
-        }
-
-        Hand {
             id: minuteHandShadow
             elementId: "MinuteHandShadow"
-            rotationCenterHintId: "MinuteHandCenter"
-            svgScale: handScale
-        }
-
-        Hand {
-            id: minuteHand
-            elementId: "MinuteHand"
             rotationCenterHintId: "MinuteHandCenter"
             svgScale: handScale
         }
@@ -132,6 +85,30 @@ Item {
             visible: showSecondsHand
             elementId: "SecondHandShadow"
             rotationCenterHintId: "SecondHandCenter"
+            svgScale: handScale
+        }
+
+        KSvg.SvgItem {
+            id: junctionShadow
+            visible: naturalSize.width > 0
+            elementId: "JunctionShadow"
+            svg: clockSvg
+            width: naturalSize.width * handScale
+            height: naturalSize.height * handScale
+            anchors.centerIn: parent
+        }
+
+        Hand {
+            id: hourHand
+            elementId: "HourHand"
+            rotationCenterHintId: "HourHandCenter"
+            svgScale: handScale
+        }
+
+        Hand {
+            id: minuteHand
+            elementId: "MinuteHand"
+            rotationCenterHintId: "MinuteHandCenter"
             svgScale: handScale
         }
 
@@ -151,8 +128,19 @@ Item {
             svg: clockSvg
             elementId: "HandCenter"
         }
+
+        KSvg.SvgItem {
+            id: junction
+            visible: naturalSize.width > 0
+            elementId: "Junction"
+            svg: clockSvg
+            width: naturalSize.width * handScale
+            height: naturalSize.height * handScale
+            anchors.centerIn: parent
+        }
     }
 
+    // Mantener timezoneBg fuera del reloj
     KSvg.FrameSvgItem {
         id: timezoneBg
         anchors {
@@ -173,8 +161,6 @@ Item {
         }
     }
 
-
-
     Component.onCompleted: {
         updateAllHands()
     }
@@ -185,7 +171,6 @@ Item {
     }
 
     function initializeHands() {
-        // Inicializar directamente a 0 grados
         hourHandShadow.rotation = 0
         hourHand.rotation = 0
         minuteHandShadow.rotation = 0
@@ -196,7 +181,6 @@ Item {
             secondHand.rotation = 0
         }
 
-        // Programar actualización a la posición real después de un breve retraso
         Qt.callLater(function() {
             var hourRotation = normalizeRotation(hours * 30 + (minutes/2))
             var minuteRotation = normalizeRotation(minutes * 6)

@@ -145,7 +145,8 @@ KCMUtils.SimpleKCM {
             model: [
                 i18n("SBB (Swiss Railway) - 59 seconds + pause"),
                 i18n("Smooth - Continuous 60 seconds"),
-                i18n("Tick - Discrete jumps with bounce")
+                i18n("Tick - Discrete jumps with bounce"),
+                i18n("DB (Deutsche Bahn) - Elastic 59 seconds + pause")
             ]
             currentIndex: cfg_handAnimationMode
             onCurrentIndexChanged: cfg_handAnimationMode = currentIndex

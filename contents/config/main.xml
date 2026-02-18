@@ -25,6 +25,7 @@
         <choice name="SBB" />
         <choice name="Smooth" />
         <choice name="Tick" />
+        <choice name="DB" />
       </choices>
       <default>0</default>
     </entry>
