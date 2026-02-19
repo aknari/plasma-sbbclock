@@ -33,9 +33,9 @@
      bordercolor="#666666"
      pagecolor="#b9c8e1"
      id="base"
-     inkscape:zoom="2.7441259"
-     inkscape:cx="62.497133"
-     inkscape:cy="56.302082"
+     inkscape:zoom="4.5091671"
+     inkscape:cx="83.940113"
+     inkscape:cy="74.847525"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:current-layer="svg2"
@@ -353,7 +353,8 @@
      transform="matrix(0.3479939,0,0,0.3479939,159.44663,-69.88923)">
     <g
        id="g62"
-       transform="matrix(1.0449482,0,0,1.0449482,31.916058,-0.77170529)">
+       transform="matrix(1.0449482,0,0,1.0449482,31.916058,-0.77170529)"
+       style="display:inline">
       <ellipse
          style="fill:url(#linearGradient62);fill-opacity:1;stroke:#000000;stroke-width:20;stroke-dasharray:none;stroke-opacity:1"
          id="circle62"
@@ -641,7 +642,7 @@
     </g>
     <g
        id="DB-logo"
-       transform="matrix(0.55433855,0,0,0.54225852,-197.75597,345.72194)"
+       transform="matrix(0.46276379,0,0,0.45267934,-193.65971,327.4196)"
        inkscape:label="DB-logo"
        style="display:inline">
       <path
@@ -664,7 +665,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline"
+     style="display:none"
      inkscape:label="layer1"
      transform="translate(-1798.1356,76.7415)" />
   <g
@@ -684,11 +685,11 @@
      inkscape:label="zip_app"
      id="layer5" />
   <path
-     d="M 96.749181,99.778903 H 104.9499 V 52.533421 l -4.00666,-0.04877 -4.194059,0.04877 z"
+     d="m 96.497166,100.37665 h 8.200744 V 53.131219 l -4.00666,-0.04877 -4.194084,0.04877 z"
      id="HourHandShadow"
      style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.154469"
-     inkscape:transform-center-x="-0.40780013"
-     inkscape:transform-center-y="-140.69104"
+     inkscape:transform-center-x="-0.004573181"
+     inkscape:transform-center-y="-23.650627"
      sodipodi:nodetypes="cccccc"
      inkscape:label="hourhandshadow">
     <animateTransform
@@ -702,11 +703,11 @@
        repeatCount="indefinite" />
   </path>
   <path
-     d="m 100.84954,23.093977 3.38725,6.8e-5 V 99.899479 H 97.462287 V 23.107574 Z"
+     d="m 100.43868,23.543414 3.38723,-0.01301 0.29646,76.804936 -6.774425,0.0262 -0.296408,-76.791409 z"
      id="MinuteHandShadow"
      style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.15693"
-     inkscape:transform-center-x="0.40780013"
-     inkscape:transform-center-y="-214.91067"
+     inkscape:transform-center-x="0.0052492092"
+     inkscape:transform-center-y="-38.415292"
      sodipodi:nodetypes="cccccc"
      inkscape:label="minutehandshadow">
     <animateTransform
@@ -724,23 +725,24 @@
   <g
      id="SecondHandShadow"
      inkscape:label="secondhandshadow"
-     transform="matrix(3.7795276,0,0,3.7795276,-197.967,-287.87759)"
-     inkscape:transform-center-x="0.12884008"
-     inkscape:transform-center-y="-38.007822">
+     transform="matrix(3.7795276,0,0,3.7795276,-198.34598,-287.05964)"
+     inkscape:transform-center-x="-0.00397242"
+     inkscape:transform-center-y="-38.00001"
+     style="display:inline">
     <circle
-       style="fill:none;fill-opacity:0.301961;stroke:#000000;stroke-width:0.635;stroke-dasharray:none;stroke-opacity:0.301961"
-       id="circle1"
-       cx="79.118416"
-       cy="91.392136"
-       r="3.0807667" />
+       style="display:inline;fill:none;fill-opacity:0.301961;stroke:#000000;stroke-width:0.426349;stroke-dasharray:none;stroke-opacity:0.301961"
+       id="circle2"
+       cx="79.035728"
+       cy="89.134521"
+       r="2.0684729" />
     <path
-       d="m 78.822272,94.416426 -0.198998,8.087084 1.037718,-0.0104 -0.198993,-8.076074 c 0,0 -0.521501,0.16441 -0.639727,-5.4e-5 z"
-       id="path42"
-       style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.0456301"
-       sodipodi:nodetypes="ccccc"
+       d="m 78.560316,102.51485 1.042,-0.0131 -0.242876,-11.106354 c 0,0 -0.17915,0.05995 -0.671683,-0.0046 -0.05993,0.09675 -0.04831,7.339407 -0.127441,11.124084 z"
+       id="path27"
+       style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.0514069"
+       sodipodi:nodetypes="cccccc"
        inkscape:label=""
-       inkscape:transform-center-x="0.40780013"
-       inkscape:transform-center-y="-198.82837">
+       inkscape:transform-center-x="0.40948253"
+       inkscape:transform-center-y="-251.32186">
       <animateTransform
          attributeName="transform"
          attributeType="XML"
@@ -754,13 +756,13 @@
          repeatCount="indefinite" />
     </path>
     <path
-       d="m 79.152333,82.381795 -0.165091,0.166107 -0.08844,5.700858 c 0,0 0.438256,0.06573 0.507065,5e-5 l -0.08844,-5.7009 z"
-       id="path43"
-       style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.044258"
+       d="m 79.053124,82.37327 -0.182142,0.146021 -0.02876,4.340427 c 0,0 0.370567,-0.0041 0.44351,-0.0069 l -0.02489,-4.340255 z"
+       id="path44"
+       style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:0.0395173"
        sodipodi:nodetypes="cccccc"
        inkscape:label=""
        inkscape:transform-center-x="0.40780013"
-       inkscape:transform-center-y="-187.04994">
+       inkscape:transform-center-y="-149.12453">
       <animateTransform
          attributeName="transform"
          attributeType="XML"
@@ -777,8 +779,8 @@
   <ellipse
      style="display:inline;fill:#000000;fill-opacity:0.301961;stroke-width:26.7415"
      id="JunctionShadow"
-     cx="100.73023"
-     cy="99.773598"
+     cx="100.58929"
+     cy="100.3361"
      inkscape:label="junctionshadow"
      rx="6.0910001"
      ry="6.0905561" />
@@ -823,24 +825,24 @@
   <g
      id="SecondHand"
      inkscape:label="seconds"
-     transform="matrix(3.7795276,0,0,3.7795276,-198.69583,-288.42421)"
-     inkscape:transform-center-x="0.12884008"
-     inkscape:transform-center-y="-38.007822"
+     transform="matrix(3.7795276,0,0,3.7795276,-198.70281,-287.54678)"
+     inkscape:transform-center-x="-0.00397242"
+     inkscape:transform-center-y="-38.00001"
      style="display:inline">
     <circle
-       style="fill:none;fill-opacity:0.301961;stroke:#ee0000;stroke-width:0.635;stroke-dasharray:none;stroke-opacity:1"
+       style="display:inline;fill:none;fill-opacity:0.301961;stroke:#ee0000;stroke-width:0.427446;stroke-dasharray:none;stroke-opacity:1"
        id="c01"
-       cx="79.118416"
-       cy="91.392136"
-       r="3.0807667" />
+       cx="79.036652"
+       cy="89.198059"
+       r="2.0737977" />
     <path
-       d="m 78.822272,94.416426 -0.198998,8.087084 1.037718,-0.0104 -0.198993,-8.076074 c 0,0 -0.521501,0.16441 -0.639727,-5.4e-5 z"
+       d="m 78.613673,102.47643 0.964917,0.003 -0.210369,-11.042872 c 0,0 -0.448599,-0.0343 -0.560188,-0.0044 -0.05969,0.09463 -0.11556,7.342577 -0.19436,11.044612 z"
        id="b02"
-       style="display:inline;fill:#ee0000;stroke-width:0.0456301"
-       sodipodi:nodetypes="ccccc"
+       style="display:inline;fill:#ee0000;stroke-width:0.0507375"
+       sodipodi:nodetypes="cccccc"
        inkscape:label=""
-       inkscape:transform-center-x="0.40780013"
-       inkscape:transform-center-y="-198.82837">
+       inkscape:transform-center-x="-0.024318637"
+       inkscape:transform-center-y="-20.900838">
       <animateTransform
          attributeName="transform"
          attributeType="XML"
@@ -854,13 +856,13 @@
          repeatCount="indefinite" />
     </path>
     <path
-       d="m 79.152333,82.381795 -0.165091,0.166107 -0.08844,5.700858 c 0,0 0.438256,0.06573 0.507065,5e-5 l -0.08844,-5.7009 z"
+       d="m 79.053124,82.37327 -0.182142,0.143192 -0.02876,4.450238 c 0,0 0.387103,0.03806 0.455912,-0.01329 l -0.03729,-4.443605 z"
        id="b01"
-       style="display:inline;fill:#ee0000;stroke-width:0.044258"
+       style="display:inline;fill:#ee0000;stroke-width:0.0391326"
        sodipodi:nodetypes="cccccc"
        inkscape:label=""
        inkscape:transform-center-x="0.40780013"
-       inkscape:transform-center-y="-187.04994">
+       inkscape:transform-center-y="-146.23475">
       <animateTransform
          attributeName="transform"
          attributeType="XML"
@@ -877,8 +879,8 @@
   <ellipse
      style="display:inline;fill:#000000;fill-opacity:1;stroke-width:26.7415"
      id="Junction"
-     cx="100.1127"
-     cy="99.840439"
+     cx="100.26546"
+     cy="99.898499"
      rx="6.0910001"
      ry="6.0905561"
      inkscape:label="junction" />
@@ -891,12 +893,20 @@
      y="70" />
   <path
      style="display:none;fill:#000000;fill-opacity:0;stroke:#7f7f7f;stroke-width:0.178"
+     d="M -1.0708934,100.38278 H 203.71657"
+     id="x-axis-shadow" />
+  <path
+     style="display:none;fill:#000000;fill-opacity:0;stroke:#7f7f7f;stroke-width:0.178"
+     d="M 100.7909,197.57638 100.36908,-7.2106422"
+     id="y-axis-shadow" />
+  <path
+     style="display:none;fill:#000000;fill-opacity:0;stroke:#7f7f7f;stroke-width:0.178"
      d="M -1.4218269,99.898736 H 203.36564"
-     id="path1" />
+     id="x-axis" />
   <path
      style="display:none;fill:#000000;fill-opacity:0;stroke:#7f7f7f;stroke-width:0.178"
      d="M 100.43997,197.09234 100.01815,-7.6946884"
-     id="path27" />
+     id="y-axis" />
   <circle
      style="display:none;fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:0.178;stroke-opacity:1"
      id="hint-secondhand-rotation-center-offset"
@@ -963,8 +973,8 @@
   <ellipse
      style="display:none;fill:#000000;fill-opacity:0.600759;stroke:#000000;stroke-width:0.133298;stroke-opacity:1"
      id="HandCenter"
-     cx="100.25619"
-     cy="100.06536"
+     cx="100.2355"
+     cy="99.889549"
      rx="0.74900001"
      ry="0.74886507" />
 </svg>

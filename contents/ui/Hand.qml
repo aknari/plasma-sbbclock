@@ -111,14 +111,21 @@ KSvg.SvgItem {
                     if (handAnimationMode === 2 && elementId.indexOf("Second") > -1) {
                         return Kirigami.Units.shortDuration
                     }
+                    if ((handAnimationMode === 0 || handAnimationMode === 3) && elementId.indexOf("Minute") > -1) {
+                        return 300 // Más corto y seco para destacar el rebote
+                    }
                     return Kirigami.Units.longDuration
                 }
                 easing.type: {
                     if (handAnimationMode === 2 && elementId.indexOf("Second") > -1) {
                         return Easing.OutElastic
                     }
+                    if ((handAnimationMode === 0 || handAnimationMode === 3) && elementId.indexOf("Minute") > -1) {
+                        return Easing.OutBack // Efecto de rebote/vibración mecánica
+                    }
                     return Easing.InOutQuad
                 }
+                easing.overshoot: ((handAnimationMode === 0 || handAnimationMode === 3) && elementId.indexOf("Minute") > -1) ? 3.0 : 1.70158
             }
         }
     }
