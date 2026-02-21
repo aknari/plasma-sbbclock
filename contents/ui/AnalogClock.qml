@@ -28,7 +28,7 @@ Item {
     property bool showTimezone: Plasmoid.configuration.showTimezoneString
     property string timezoneString: ""
     
-    property real handScale: Math.min(width, height) / 200
+    property real handScale: (face.naturalSize.width > 0) ? (face.width / face.naturalSize.width) : (Math.min(width, height) / 200)
 
     Layout.minimumWidth: Plasmoid.formFactor !== PlasmaCore.Types.Vertical ? height : Kirigami.Units.gridUnit
     Layout.minimumHeight: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? width : Kirigami.Units.gridUnit
@@ -122,8 +122,8 @@ Item {
 
         KSvg.SvgItem {
             id: center
-            width: naturalSize.width * (face.width / face.naturalSize.width)
-            height: naturalSize.height * (face.width / face.naturalSize.width)
+            width: naturalSize.width * handScale
+            height: naturalSize.height * handScale
             anchors.centerIn: parent
             svg: clockSvg
             elementId: "HandCenter"
